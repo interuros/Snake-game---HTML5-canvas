@@ -80,6 +80,10 @@
         }
 
 
+        .play-button{
+            margin-bottom: 60px;
+        }
+
         .play-button button{
             background-color: transparent;
             border: 2px solid #fff;
@@ -98,6 +102,26 @@
             color: rgb(72, 139, 197);
         }
 
+        h2{
+            color: #fff;
+            margin-bottom: 40px;
+        }
+        
+        .leaderboard{
+            color: #fff;
+            text-align: left;
+        }
+
+        .leaderboard li{
+            margin-bottom: 10px;
+            font-size: 25px;
+        }
+
+        .leaderboard li span{
+            margin-left: 20px;
+            font-size: 20px;
+        }
+
 
     </style>
     
@@ -106,13 +130,17 @@
     
     <div class="menu">
         <h1 class="score"></h1>
-        <div class="player-name-container">
+        <!--<div class="player-name-container">
             <input type="text" placeholder="Enter your name" class="player-name" name="player-name">
-        </div>
+        </div>-->
         
         <div class="play-button">
             <button class="play">PLAY</button>
         </div>
+
+        <h2>LEADERBOARD</h2>
+        <ol class="leaderboard">
+        </ol>
 
     </div>
     <div class="snake">
@@ -136,33 +164,83 @@
         let squareArr = [];//number of parts the snake is composed of
         let appleArr = [];//number of apples
         let score = 0;//SCORE
+        let scores = [];//scores array
         let snakeSpeed = 100; //lower = faster
         let playGame;//loop that initializes game play
         let playButton = document.querySelector('.play');//the play button
+        let countdown = document.querySelector('.countdown');
         let countDownNumber = 1;
-
+        let id = 2;
+        
+        let leaderBoard = document.querySelector('.leaderboard');
         
 
-        canvas.width = canvasContainer.offsetWidth * 0.8 - (canvasContainer.offsetWidth * 0.8) % 10;
-        canvas.height = canvasContainer.offsetHeight * 0.8 - (canvasContainer.offsetHeight * 0.8) % 10;
+        let scoreDom = document.querySelector('.score');
+        scoreDom.textContent = "SCORE: 0";
+
+        function sizeCanvas(){
+            canvas.width = canvasContainer.offsetWidth * 0.999 - (canvasContainer.offsetWidth * 0.999) % 10;
+            canvas.height = canvasContainer.offsetHeight * 0.999 - (canvasContainer.offsetHeight * 0.999) % 10;
+        }
+
+        sizeCanvas();
+
+        window.addEventListener('resize', sizeCanvas);
+        
         console.log(canvas.width);
         console.log(canvas.height);
         
 
+
+
         //starts the game
         function initGame(){
+            //creates first part of the snake
+            let firstSquare = new Square(canvas.width * 0.5 - (canvas.width * 0.5) % 10, canvas.height * 0.5 - (canvas.height * 0.5) % 10, 9, 10, 1, "#ff0000");//CREATES FIRST SQUARE
+            squareArr.push(firstSquare);
+            
+            scoreDom.textContent = 'SCORE: ' + score;
+
+            console.log(squareArr);
+            randomizeApple();//initalizes first apple
+            console.log(appleArr);
+            updateScore()//called to set initial score
             playGame = setInterval(animate, snakeSpeed);
         }
-        
+
+        //resets game when you lose
+        function resetGame(){
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            countdown.style.display = "block";
+            countdown.textContent = "YOU LOST!";
+            
+            scores.push(score - 1);
+
+            addScores();
+
+
+            score = 0;
+            appleArr = [];
+            squareArr = [];
+            snakeSpeed = 100;
+            arrowPressed = "left";
+            clearInterval(playGame);
+        }
+
+
         //start game on play button click
         playButton.addEventListener('click', function(){
 
+
             let countDown = setInterval(function(){
-                document.querySelector('.countdown').textContent = countDownNumber;
+
+                countdown.textContent = countDownNumber;
                 
                 if(countDownNumber > 3){
                     clearInterval(countDown);
-                    document.querySelector('.countdown').style.display = "none";
+                    countdown.style.display = "none";
+                    countDownNumber = 1;
                 }
 
                 countDownNumber ++;
@@ -171,6 +249,38 @@
             setTimeout(initGame, 3000);
 
         });
+
+
+
+        //adds score to leaderboard
+
+        function addScores(){
+
+            while (leaderBoard.firstChild) {
+                leaderBoard.removeChild(leaderBoard.firstChild);
+            }
+
+            scores.sort(function(a, b){
+                return b - a;
+            });
+
+            for(let num of scores){
+                let leaderBoardItem = document.createElement('li');
+                let leaderBoardScore = document.createElement('span');
+                leaderBoard.appendChild(leaderBoardItem);
+                leaderBoardItem.appendChild(leaderBoardScore);
+                leaderBoardScore.textContent = num;
+            }
+
+        }
+        
+        
+
+        console.log(scores);
+        
+
+
+
 
         //SNAKE PART CONSTRUCTOR
         function Square(x, y, size, v, id, color){
@@ -204,6 +314,34 @@
                     } else if(arrowPressed === "left"){ //arrow LEFT
                         this.x -= this.v;
                         this.y += 0;
+                    }
+                }
+            }
+
+
+            this.wallCollision = function(){
+                if(this.id === 1){
+                    if(this.x + 9 > canvas.width + 10){
+                        this.x = -10 ;
+                    } else if(this.x - 9 < -10){
+                        this.x = canvas.width - 10;
+                    }
+
+                    if(this.y + 9 > canvas.height + 10){
+                        this.y = -10 ;
+                    } else if(this.y - 9 < -10){
+                        this.y = canvas.height - 10;
+                    }
+                }
+            }
+
+            this.canibalism = function(){
+                if(this.id === 1){
+                    for(let i = 1; i < squareArr.length; i++){
+                        if(((this.x < squareArr[i].x + 10) && (this.x + 10 > squareArr[i].x )
+                        && ((this.y < squareArr[i].y + 10) && (this.y + 10 > squareArr[i].y )))){
+                            resetGame();
+                        }
                     }
                 }
             }
@@ -269,43 +407,26 @@
 
         //updates the score
         function updateScore(){
-            document.querySelector('.score').textContent = 'SCORE: ' + score;
+            scoreDom.textContent = 'SCORE: ' + score;
 
             score++;
         }
-
-
-        updateScore()//called to set initial score
 
         //randomizes position for the apple and corrects it if needed
         function randomizeApple(){
             let x = Math.random() * canvas.width;
             let y = Math.random() * canvas.height;
             
-            
+            x -= x % 10;
+            y -= y % 10;
 
             let apple = new Apple(x, y);
 
             apple.correctPosition();
-            x -= x % 10;
-            y -= y % 10;
-            
+
             appleArr.push(apple);
-
         }
-
-        randomizeApple();//initalizes first apple
-        console.log(appleArr);
-        
-        
-        //creates first part of the snake
-        let firstSquare = new Square(300, 200, 9, 10, 1, "#ff0000");//CREATES FIRST SQUARE
-        squareArr.push(firstSquare);
-        let id = 2;
-
-        console.log(squareArr);
-        
-        
+    
         //creates snake parts
         function creatSnakePart(){
             let x = undefined;
@@ -327,9 +448,14 @@
 
             ctx.clearRect(0,0,canvas.width,canvas.height);
 
+            appleArr[appleArr.length - 1].drawApple();
+            appleArr[appleArr.length - 1].eaten();
+
             for (let i = 0; i < squareArr.length; i++) {
                 squareArr[i].draw();
                 squareArr[i].move();
+                squareArr[i].wallCollision();
+                squareArr[i].canibalism();
 
                 if(i > 0 && arrowPressed != null){
 
@@ -342,8 +468,10 @@
                 }
             }
 
-            appleArr[appleArr.length - 1].drawApple();
-            appleArr[appleArr.length - 1].eaten();
+            
+            
+
+            
         }
 
         //updates the arrowPressed function depending on the pressed arrow
