@@ -1,0 +1,34 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+body{
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.snake-container{
+    height: 300px;
+    width: 600px;
+    border: 1px solid red;
+}
+
+
+.snake-canVas{
+    color: #000;
+}
+
+
+.snake-score{
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: #fff;
+    font-size: 20px;
+}
