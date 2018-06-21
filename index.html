@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <style>
+        
+        *{
+            margin: 0;
+            padding: 0;
+        }
+
+        body{
+            display: flex;
+            height: 100vh;
+            align-items: center;
+        }
+
+        .snake{
+            background-color: #000;
+            flex: 80%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        canvas{
+            border: 1px solid #fff;
+        }
+
+        .countdown{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translateY(-50%) translateX(-50%);
+
+            color: #fff;
+            font-size: 100px;
+        }
+
+        .menu{
+            background-color: rgb(72, 139, 197);
+            height: 100%;
+            display: flex;
+            flex-basis: 20%;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .score{
+            color: #fff;
+            font-size: 30px;
+            margin-top: 40px;
+            margin-bottom: 60px;
+            
+        }
+
+        
+
+        .player-name-container{
+            -webkit-box-shadow: inset 0px 0px 2px 0px rgba(0,0,0,0.75);
+            -moz-box-shadow: inset 0px 0px 2px 0px rgba(0,0,0,0.75);
+            box-shadow: inset 0px 0px 2px 0px rgba(0,0,0,0.75);
+            margin-bottom: 50px;
+            background-color: rgb(249, 251, 253);
+        }
+
+        .player-name{
+            font-size: 24px;
+            outline: none;
+            padding: 10px;
+            border: none;
+            background-color: transparent;
+        }
+
+
+        .play-button button{
+            background-color: transparent;
+            border: 2px solid #fff;
+            color: #fff;
+            font-weight: #fff;
+            border-radius: 10px;
+            padding: 14px 20px;
+            cursor: pointer;
+            font-size: 22px;
+            outline: none;
+            transition: .3s;
+        }
+
+        .play-button button:hover{
+            background-color: #fff;
+            color: rgb(72, 139, 197);
+        }
+
+
+    </style>
+    
+</head>
+<body>
+    
+    <div class="menu">
+        <h1 class="score"></h1>
+        <div class="player-name-container">
+            <input type="text" placeholder="Enter your name" class="player-name" name="player-name">
+        </div>
+        
+        <div class="play-button">
+            <button class="play">PLAY</button>
+        </div>
+
+    </div>
+    <div class="snake">
+        <canvas>
+        </canvas>
+        
+        <h1 class="countdown"></h1>
+    </div>
+
+
+    
+    
+
+
+    <script type="text/javascript">
+        
+        let canvasContainer = document.querySelector('.snake');
+        let canvas = document.querySelector('canvas');//canvas
+        let ctx = canvas.getContext('2d');//canvas properties
+        let arrowPressed = "left";//direction of the snake movement
+        let squareArr = [];//number of parts the snake is composed of
+        let appleArr = [];//number of apples
+        let score = 0;//SCORE
+        let snakeSpeed = 100; //lower = faster
+        let playGame;//loop that initializes game play
+        let playButton = document.querySelector('.play');//the play button
+        let countDownNumber = 1;
+
+        
+
+        canvas.width = canvasContainer.offsetWidth * 0.8 - (canvasContainer.offsetWidth * 0.8) % 10;
+        canvas.height = canvasContainer.offsetHeight * 0.8 - (canvasContainer.offsetHeight * 0.8) % 10;
+        console.log(canvas.width);
+        console.log(canvas.height);
+        
+
+        //starts the game
+        function initGame(){
+            playGame = setInterval(animate, snakeSpeed);
+        }
+        
+        //start game on play button click
+        playButton.addEventListener('click', function(){
+
+            let countDown = setInterval(function(){
+                document.querySelector('.countdown').textContent = countDownNumber;
+                
+                if(countDownNumber > 3){
+                    clearInterval(countDown);
+                    document.querySelector('.countdown').style.display = "none";
+                }
+
+                countDownNumber ++;
+            }, 1000);
+
+            setTimeout(initGame, 3000);
+
+        });
+
+        //SNAKE PART CONSTRUCTOR
+        function Square(x, y, size, v, id, color){
+            this.x = x;
+            this.y = y;
+            this.size = size;
+            this.v = v;
+            this.id = id;
+            this.oldX = x;
+            this.oldY = y;
+            this.color = color;
+
+            this.draw = function(){
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.size, this.size );
+            }
+
+            this.move = function(){
+
+                //MOVES ONLY 1ST SNAKE PART BEACUSE THE REST WILL JUST FOLLOW THE PREVIOUS PART
+                if(this.id === 1){
+                    if(arrowPressed === "right"){//arrow RIGHT
+                        this.x += this.v;
+                        this.y += 0;
+                    } else if(arrowPressed === "up"){ //arrow UP
+                        this.x += 0;
+                        this.y -= this.v;
+                    } else if(arrowPressed === "down"){ //arrow DOWN
+                        this.x += 0;
+                        this.y += this.v;
+                    } else if(arrowPressed === "left"){ //arrow LEFT
+                        this.x -= this.v;
+                        this.y += 0;
+                    }
+                }
+            }
+        }
+
+        //APPLE CONSTRUCTOR
+        function Apple(x, y){
+            this.x = x;
+            this.y = y;
+
+            this.drawApple = function(){
+                ctx.fillStyle = "ff0000";
+                ctx.fillRect(this.x, this.y, 9, 9);
+            }
+
+            this.correctPosition = function(){
+                if(this.x + 9 > canvas.width){
+                    this.x = canvas.width - 9;
+                } else if(this.x - 9 < 0){
+                    this.x = 0 + 9 ;
+                }
+
+                if(this.y + 9 > canvas.height){
+                    this.y = canvas.height - 9;
+                } else if(this.y - 9 < 0){
+                    this.y = 0 + 9;
+                }
+            }
+
+            this.eaten = function(){
+                for(let el of squareArr){
+                    if(((this.x < el.x + el.size) && (this.x + 9 > el.x )
+                        && ((this.y < el.y + el.size) && (this.y + 9 > el.y )))){
+
+                        randomizeApple();
+                        updateScore();
+                        creatSnakePart();
+                        console.log('EAT');
+                        
+                        snakeSpeed /= 1.03;
+                        
+                        if(snakeSpeed < 30){
+                            snakeSpeed = 30;
+                        }
+
+                        console.clear();
+                        console.log(snakeSpeed);
+                        clearInterval(playGame);
+                        
+                        playGame = setInterval(animate, snakeSpeed);
+                        console.log(appleArr);
+                        console.log(squareArr);
+                        
+                        
+
+                    }
+
+                    
+                }
+            }
+        }   
+
+
+        //updates the score
+        function updateScore(){
+            document.querySelector('.score').textContent = 'SCORE: ' + score;
+
+            score++;
+        }
+
+
+        updateScore()//called to set initial score
+
+        //randomizes position for the apple and corrects it if needed
+        function randomizeApple(){
+            let x = Math.random() * canvas.width;
+            let y = Math.random() * canvas.height;
+            
+            
+
+            let apple = new Apple(x, y);
+
+            apple.correctPosition();
+            x -= x % 10;
+            y -= y % 10;
+            
+            appleArr.push(apple);
+
+        }
+
+        randomizeApple();//initalizes first apple
+        console.log(appleArr);
+        
+        
+        //creates first part of the snake
+        let firstSquare = new Square(300, 200, 9, 10, 1, "#ff0000");//CREATES FIRST SQUARE
+        squareArr.push(firstSquare);
+        let id = 2;
+
+        console.log(squareArr);
+        
+        
+        //creates snake parts
+        function creatSnakePart(){
+            let x = undefined;
+            let y = undefined;
+            let size = 9;
+            let v = 10;
+            let ID = id;
+            let color = "#00ff00";
+
+            let square = new Square(x, y, size, v, ID, color);
+
+            squareArr.push(square);
+
+            id ++;
+        }
+
+        //animates everything (sets game in motion)
+        function animate(){
+
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+
+            for (let i = 0; i < squareArr.length; i++) {
+                squareArr[i].draw();
+                squareArr[i].move();
+
+                if(i > 0 && arrowPressed != null){
+
+                    squareArr[i].x = squareArr[i - 1].oldX;
+                    squareArr[i].y = squareArr[i - 1].oldY;
+                    
+                    squareArr[i - 1].oldX = squareArr[i - 1].x;
+                    squareArr[i - 1].oldY = squareArr[i - 1].y;
+
+                }
+            }
+
+            appleArr[appleArr.length - 1].drawApple();
+            appleArr[appleArr.length - 1].eaten();
+        }
+
+        //updates the arrowPressed function depending on the pressed arrow
+        window.addEventListener('keydown', function(event){
+            event.preventDefault();
+
+            if(event.code === "ArrowRight" && arrowPressed != "left"){//arrow RIGHT
+                arrowPressed = "right";
+            } else if(event.code === "ArrowUp" && arrowPressed != "down"){ //arrow UP
+                arrowPressed = "up";
+            } else if(event.code === "ArrowDown" && arrowPressed != "up"){ //arrow DOWN
+                arrowPressed = "down";
+            } else if(event.code === "ArrowLeft" && arrowPressed != "right"){ //arrow LEFT
+                arrowPressed = "left";
+            }
+            
+        });
+
+
+
+    </script>
+</body>
+</html>
