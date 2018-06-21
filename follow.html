@@ -32,7 +32,7 @@
 <body>
     
 
-    <canvas width="700" height="700">
+    <canvas width="500" height="500">
 
     </canvas>
 
@@ -42,7 +42,9 @@
         let canvas = document.querySelector('canvas');
         let ctx = canvas.getContext('2d');
         let arrowPressed = null;
+        
 
+        //SNALE PART OBJECT
         function Square(x, y, size, v, id, color){
             this.x = x;
             this.y = y;
@@ -60,6 +62,7 @@
 
             this.move = function(){
 
+                //MOVES ONLY 1ST SNAKE PART BEACUSE THE REST WILL JUST FOLLOW THE PREVIOUS PART
                 if(this.id === 1){
                     if(arrowPressed === "right"){//arrow RIGHT
                         this.x += this.v;
@@ -79,20 +82,19 @@
         }
 
         
-        let firstSquare = new Square(300, 200, 10, 0.5, 1, "#ff0000");
+        let firstSquare = new Square(300, 200, 9, 10, 1, "#ff0000");//CREATES FIRST SQUARE
         let squareArr = [];
 
         squareArr.push(firstSquare);
 
-        console.log(squareArr);
         
         let id = 2;
         if(squareArr.length > 0){
-            for (let i = 1; i < 5; i++) {
+            for (let i = 1; i < 20; i++) {
                 let x = squareArr[i - 1].x - squareArr[i - 1].size - 1;
                 let y = squareArr[i - 1].y;
-                let size = 10;
-                let v = 0.5;
+                let size = 9;
+                let v = 10;
                 let color = "#00ff00";
                 
                 let square = new Square(x, y, size, v, id, color);
@@ -105,7 +107,6 @@
 
 
         function animate(){
-            requestAnimationFrame(animate);
 
             ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -115,24 +116,8 @@
 
                 if(i > 0 && arrowPressed != null){
 
-                   /* if(arrowPressed === "right"){//arrow RIGHT
-                        squareArr[i].x = squareArr[i - 1].oldX - 11;
+                    squareArr[i].x = squareArr[i - 1].oldX;
                     squareArr[i].y = squareArr[i - 1].oldY;
-                    } else if(arrowPressed === "up"){ //arrow UP
-                        squareArr[i].x = squareArr[i - 1].oldX;
-                        squareArr[i].y = squareArr[i - 1].oldY - 11;
-                    } else if(arrowPressed === "down"){ //arrow DOWN
-                        squareArr[i].x = squareArr[i - 1].oldX;
-                        squareArr[i].y = squareArr[i - 1].oldY + 11;
-                    } else if(arrowPressed === "left"){ //arrow LEFT
-                        squareArr[i].x = squareArr[i - 1].oldX + 11;
-                         squareArr[i].y = squareArr[i - 1].oldY;
-                    }*/
-
-                        squareArr[i].x = squareArr[i - 1].oldX;
-                        squareArr[i].y = squareArr[i - 1].oldY;
-                    
-                   
                     
                     squareArr[i - 1].oldX = squareArr[i - 1].x;
                     squareArr[i - 1].oldY = squareArr[i - 1].y;
@@ -141,7 +126,9 @@
             }
         }
 
-        animate();
+       function playGame(){setInterval(animate, 41.666667)};
+
+       playGame();
 
         
         //updates the arrowPressed function depending on the pressed arrow
