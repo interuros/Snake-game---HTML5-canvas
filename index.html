@@ -77,6 +77,8 @@
             padding: 10px;
             border: none;
             background-color: transparent;
+            position: relative;
+            z-index: 1000;
         }
 
 
@@ -130,9 +132,9 @@
     
     <div class="menu">
         <h1 class="score"></h1>
-        <!--<div class="player-name-container">
+        <div class="player-name-container">
             <input type="text" placeholder="Enter your name" class="player-name" name="player-name">
-        </div>-->
+        </div>
         
         <div class="play-button">
             <button class="play">PLAY</button>
@@ -211,7 +213,7 @@
         //resets game when you lose
         function resetGame(){
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            clearInterval(playGame);
             countdown.style.display = "block";
             countdown.textContent = "YOU LOST!";
             
@@ -225,25 +227,28 @@
             squareArr = [];
             snakeSpeed = 100;
             arrowPressed = "left";
-            clearInterval(playGame);
+            
         }
 
 
         //start game on play button click
         playButton.addEventListener('click', function(){
 
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             let countDown = setInterval(function(){
 
                 countdown.textContent = countDownNumber;
                 
+                countDownNumber ++;
+
                 if(countDownNumber > 3){
                     clearInterval(countDown);
                     countdown.style.display = "none";
                     countDownNumber = 1;
                 }
 
-                countDownNumber ++;
+                
             }, 1000);
 
             setTimeout(initGame, 3000);
@@ -361,13 +366,13 @@
                 if(this.x + 9 > canvas.width){
                     this.x = canvas.width - 9;
                 } else if(this.x - 9 < 0){
-                    this.x = 0 + 9 ;
+                    this.x = 9 ;
                 }
 
                 if(this.y + 9 > canvas.height){
                     this.y = canvas.height - 9;
                 } else if(this.y - 9 < 0){
-                    this.y = 0 + 9;
+                    this.y = 9;
                 }
             }
 
@@ -457,7 +462,7 @@
                 squareArr[i].wallCollision();
                 squareArr[i].canibalism();
 
-                if(i > 0 && arrowPressed != null){
+                if(i > 0){
 
                     squareArr[i].x = squareArr[i - 1].oldX;
                     squareArr[i].y = squareArr[i - 1].oldY;
